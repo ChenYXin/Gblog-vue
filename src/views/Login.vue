@@ -6,11 +6,11 @@
             <n-input v-model:value="admin.username" placeholder="请输入账号" />
         </n-form-item>
         <n-form-item path="password" lable="密码">
-            <n-input v-model:value="admin.password" placeholder="请输入密码" />
+            <n-input v-model:value="admin.password" type="password" placeholder="请输入密码" />
         </n-form-item>
      </n-form>
      <template #footer>
-        <n-checkbox v-model:checked="admin.remember" label="记住密码"/>
+        <n-checkbox v-model:checked="admin.rember" label="记住密码"/>
         <n-button @click="login">登陆</n-button>
      </template>
     </n-card>
@@ -19,7 +19,17 @@
 
 <script setup>
 import { ref,reactive,inject} from 'vue'
+import {AdminStore} from '../stores/AdminStore';
+import {useRouter,useRoute} from 'vue-router'
+const router = useRouter();
+const route = useRoute();
+
+const message = inject("message");
 const axios = inject("axios");
+const adminStore = AdminStore();
+
+
+ 
 
 let rules ={
     username:[
@@ -33,9 +43,9 @@ let rules ={
 };
 
 const admin = reactive({
-    username:"",
-    password:"",
-    remember:false,
+    username:localStorage.getItem("username")||"",
+    password:localStorage.getItem("password")||"",
+    rember:localStorage.getItem("rember")==1||false,
 });
 
 const login = async() =>{
@@ -44,6 +54,21 @@ const login = async() =>{
         password:admin.password,
     });
     console.log(result);
+    if(result.data.status == 200){
+        adminStore.token=result.data.data.token;
+        adminStore.username=result.data.data.username;
+        adminStore.ID=result.data.data.id;
+        if(admin.rember){
+            localStorage.setItem("username",admin.username);
+            localStorage.setItem("password",admin.password);
+            localStorage.setItem("rember",admin.rember?1:0);
+        }
+        router.push("/dashboard")
+        message.info("登陆成功");
+    }else{
+        // alert(result.message);
+        message.error('登陆失败')
+    }
 };
 
 </script>
