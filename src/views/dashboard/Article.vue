@@ -28,7 +28,7 @@
           <n-input v-model:value="addArticle.title" placeholder="请输入标题" />
         </n-form-item>
         <n-form-item label="分类">
-          <n-select v-model:value="addArticle.categoryId" :options="categoryOptions" />
+          <n-select v-model:value="addArticle.cid" :options="categoryOptions" />
         </n-form-item>
         <n-form-item label="内容">
           <rich-text-editor v-model="addArticle.content" />
@@ -43,7 +43,7 @@
           <n-input v-model:value="updateArticle.title" placeholder="请输入标题" />
         </n-form-item>
         <n-form-item label="分类">
-          <n-select v-model:value="updateArticle.categoryId" :options="categoryOptions" />
+          <n-select v-model:value="updateArticle.cid" :options="categoryOptions" />
         </n-form-item>
         <n-form-item label="内容">
           <rich-text-editor v-model="updateArticle.content" />
@@ -71,13 +71,13 @@ const axios = inject('axios')
 const adminStore = AdminStore()
 
 const addArticle = reactive({
-  categoryId: 7,
+  cid: 7,
   title: '',
   content: ''
 })
 const updateArticle = reactive({
   id: 0,
-  categoryId: 7,
+  cid: 7,
   title: '',
   content: ''
 })
@@ -131,7 +131,7 @@ const add = async () => {
   let res = await axios.post(
     '/api/v1/article/add',
     {
-      cid: addArticle.categoryId,
+      cid: addArticle.cid,
       title: addArticle.title,
       // description: addArticle.description,
       // img: addArticle.img,
@@ -142,7 +142,7 @@ const add = async () => {
   console.log(res.data.status)
   if (res.data.status === 200) {
     message.info(res.data.message)
-    addArticle.categoryId = 0
+    addArticle.cid = 0
     addArticle.title = ''
     addArticle.content = ''
   } else {
@@ -161,7 +161,7 @@ const toUpdate = async (blog) => {
   updateArticle.id = blog.ID
   updateArticle.title = res.data.data.title
   updateArticle.content = res.data.data.content
-  updateArticle.categoryId = res.data.data.cid
+  updateArticle.cid = res.data.data.cid
 }
 
 const update = async () => {
@@ -171,7 +171,7 @@ const update = async () => {
   console.log(res.data.status)
   if (res.data.status === 200) {
     message.info(res.data.message)
-    updateArticle.categoryId = 0
+    updateArticle.cid = 0
     updateArticle.title = ''
     updateArticle.content = ''
     tabValue.value = 'list'
@@ -182,15 +182,26 @@ const update = async () => {
 }
 
 const toDelete = async (blog) => {
-  let res = await axios.delete(`/api/v1/article/${blog.ID}`, {
-    headers: { token: adminStore.token }
+  dialog.warning({
+    title: '警告',
+    content: '你确定删除？',
+    positiveText: '确定',
+    negativeText: '取消',
+    onPositiveClick: async () => {
+      let res = await axios.delete(`/api/v1/article/${blog.ID}`, {
+        headers: { token: adminStore.token }
+      })
+      if (res.data.status === 200) {
+        await loadBlogs()
+        message.info(res.data.message)
+      } else {
+        message.error(res.data.message)
+      }
+    },
+    onNegativeClick: () => {}
   })
-  if (res.data.status === 200) {
-    message.info(res.data.message)
-    loadBlogs()
-  } else {
-    message.error(res.data.message)
-  }
+
+
 }
 </script>
 
