@@ -3,7 +3,12 @@
     <div class="nav">
       <div @click="homePage">首页</div>
       <div>
-        <n-popselect v-model:value="selectedCategory" :options="categoryOptions" trigger="click">
+        <n-popselect
+          @update:value="searchByCategory"
+          v-model:value="selectedCategory"
+          :options="categoryOptions"
+          trigger="click"
+        >
           <div>
             分类<span>{{ categoryName }}</span>
           </div>
@@ -20,8 +25,8 @@
       ></n-input>
       <n-button type="primary" ghost @click="loadBlogs(0)">搜索</n-button>
     </n-space>
-    <div v-for="(blog, index) in blogListInfo" style="margin-top: 15px">
-      <n-card :title="blog.title">
+    <div v-for="(blog, index) in blogListInfo" style="margin-top: 15px; cursor: pointer">
+      <n-card :title="blog.title" @click="toDetail(blog)">
         {{ blog.content }}
         <template #footer>
           <n-space align="center">
@@ -30,11 +35,13 @@
         </template>
       </n-card>
     </div>
-    <n-pagination
-      @update:page="loadBlogs"
-      v-model:page="pageInfo.pageSize"
-      :page-count="pageInfo.pageCount"
-    />
+    <div style="margin-top: 20px">
+      <n-pagination
+        @update:page="loadBlogs"
+        v-model:page="pageInfo.pageSize"
+        :page-count="pageInfo.pageCount"
+      />
+    </div>
     <n-divider />
     <div class="footer">
       <div>Power by xxx</div>
@@ -112,6 +119,15 @@ const loadCategory = async () => {
   console.log(categoryOptions.value)
 }
 
+const searchByCategory = async (even) => {
+  console.log(even)
+}
+
+const toDetail = (blog) => {
+  console.log(blog)
+  router.push({ path: '/detail', query: { id: blog.ID } })
+}
+
 const homePage = () => {
   router.push('/')
 }
@@ -126,7 +142,7 @@ const dashboard = () => {
 }
 
 .container {
-  width: 100%;
+  width: 90%;
   margin: 0 auto;
 }
 
