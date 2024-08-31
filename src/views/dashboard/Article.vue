@@ -1,6 +1,6 @@
 <template>
   <div>
-    <n-tabs default-value="list" justify-content="start" type="line">
+    <n-tabs v-model:value="tabValue" justify-content="start" type="line">
       <n-tab-pane name="list" tab="文章列表">
         <div v-for="(blog, index) in blogListInfo" style="margin-top: 15px">
           <n-card :title="blog.title">
@@ -8,8 +8,8 @@
             <template #footer>
               <n-space align="center">
                 <div>发布时间：{{ blog.created_at }}</div>
-                <n-button>修改</n-button>
-                <n-button>删除</n-button>
+                <n-button @click="toUpdate(blog)">修改</n-button>
+                <n-button @click="toDelete(blog)">删除</n-button>
               </n-space>
             </template>
           </n-card>
@@ -37,7 +37,21 @@
           <n-button @click="add">提交</n-button>
         </n-form-item>
       </n-tab-pane>
-      <n-tab-pane name="jay chou" tab="周杰伦"> 七里香</n-tab-pane>
+
+      <n-tab-pane name="update" tab="修改">
+        <n-form-item label="标题">
+          <n-input v-model:value="updateArticle.title" placeholder="请输入标题" />
+        </n-form-item>
+        <n-form-item label="分类">
+          <n-select v-model:value="updateArticle.categoryId" :options="categoryOptions" />
+        </n-form-item>
+        <n-form-item label="内容">
+          <rich-text-editor v-model="updateArticle.content" />
+        </n-form-item>
+        <n-form-item label="">
+          <n-button @click="update">提交</n-button>
+        </n-form-item>
+      </n-tab-pane>
     </n-tabs>
   </div>
 </template>
@@ -61,9 +75,16 @@ const addArticle = reactive({
   title: '',
   content: ''
 })
+const updateArticle = reactive({
+  id: 0,
+  categoryId: 7,
+  title: '',
+  content: ''
+})
 
 const categoryOptions = ref([])
 const blogListInfo = ref([])
+const tabValue = ref('list')
 
 const pageInfo = reactive({
   pageSize: 0,
@@ -132,6 +153,44 @@ const add = async () => {
 const toPage = async (pageNum) => {
   pageInfo.pageSize = pageNum - 1
   await loadBlogs()
+}
+
+const toUpdate = async (blog) => {
+  tabValue.value = 'update'
+  let res = await axios.get(`/api/v1/article/${blog.ID}`)
+  updateArticle.id = blog.ID
+  updateArticle.title = res.data.data.title
+  updateArticle.content = res.data.data.content
+  updateArticle.categoryId = res.data.data.cid
+}
+
+const update = async () => {
+  let res = await axios.put(`/api/v1/article/${updateArticle.id}`, updateArticle, {
+    headers: { token: adminStore.token }
+  })
+  console.log(res.data.status)
+  if (res.data.status === 200) {
+    message.info(res.data.message)
+    updateArticle.categoryId = 0
+    updateArticle.title = ''
+    updateArticle.content = ''
+    tabValue.value = 'list'
+    loadBlogs()
+  } else {
+    message.error(res.data.message)
+  }
+}
+
+const toDelete = async (blog) => {
+  let res = await axios.delete(`/api/v1/article/${blog.ID}`, {
+    headers: { token: adminStore.token }
+  })
+  if (res.data.status === 200) {
+    message.info(res.data.message)
+    loadBlogs()
+  } else {
+    message.error(res.data.message)
+  }
 }
 </script>
 
