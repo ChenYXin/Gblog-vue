@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@wangeditor/editor": "^5.1.23",
-    "@wangeditor/editor-for-vue": "^1.0.2",
+    "@wangeditor/editor-for-vue": "^5.1.12",
     "axios": "^1.7.5",
     "pinia": "^2.2.2",
     "sass": "^1.77.8",
